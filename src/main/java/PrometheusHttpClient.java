@@ -2,6 +2,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.logging.log4j.LogManager;
@@ -51,23 +52,7 @@ public class PrometheusHttpClient implements Runnable {
     ////////////////////////////////////////////////////////////////////////
 
 
-    private static void readEnvAndCrateAdminClient() {
-        log.info("inside read env");
 
-        for (double c : capacities) {
-            currentConsumers.put(c, 0);
-            previousConsumers.put(c,0);
-        }
-        sleep = Long.valueOf(System.getenv("SLEEP"));
-        topic = System.getenv("TOPIC");
-        poll = Long.valueOf(System.getenv("POLL"));
-        CONSUMER_GROUP = System.getenv("CONSUMER_GROUP");
-        BOOTSTRAP_SERVERS = System.getenv("BOOTSTRAP_SERVERS");
-        Properties props = new Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-        admin = AdminClient.create(props);
-       previousConsumers.put(100.0, 1);
-    }
 
 
     private static void initialize() throws InterruptedException, ExecutionException {
@@ -127,11 +112,9 @@ public class PrometheusHttpClient implements Runnable {
     public static void  youMightWanttoScaleTrial2(){
         log.info("Inside binPackAndScale ");
         List<Consumer> consumers = new ArrayList<>();
-        int consumerCount = 0;
-        List<Partition> parts = new ArrayList<>(topicpartitions);
+
         Map<Double, List<Consumer>> currentConsumersByName = new HashMap<>();
-    /*    FirstFitDecHetero hetero = new FirstFitDecHetero(parts, capacities);
-        List<Consumer> cons = hetero.fftFFDHetero();*/
+
         LeastLoadedHetero llh = new LeastLoadedHetero(ArrivalProducer.topicpartitions, 1.0f, capacities);
         List<Consumer> cons = llh.performLeastLoaded();
 
@@ -179,27 +162,32 @@ public class PrometheusHttpClient implements Runnable {
         // scale up
         for (double d : capacities) {
             if (scaleByCapacity.get(d) != null && diffByCapacity.get(d) > 0) {
-                log.info("The statefulset {} shall be  scaled to {}", "cons"+(int)d, scaleByCapacity.get(d) );
-                if(Duration.between(warmup, Instant.now()).toSeconds() > 30 ) {
-                    log.info("cons"+(int)d);
+                log.info("The statefulset {} shall be  scaled to {}", "cons" + (int) d, scaleByCapacity.get(d));
 
-                    /* new Thread(()-> {*/ try (final KubernetesClient k8s = new DefaultKubernetesClient()) {
-                        k8s.apps().statefulSets().inNamespace("default").withName("cons"+(int)d).scale(scaleByCapacity.get(d));
-                    }}/*).start();*/
+                log.info("cons" + (int) d);
+
+                new Thread(() -> {
+                    try (final KubernetesClient k8s = new KubernetesClientBuilder().build()) {
+                        k8s.apps().statefulSets().inNamespace("default").withName("cons" + (int) d).scale(scaleByCapacity.get(d));
+                    }
+                }).start();
                 lastScaletime = Instant.now();
             }
         }
+
         // scale down
         for (double d : capacities) {
             if (scaleByCapacity.get(d) != null && diffByCapacity.get(d) < 0) {
-                log.info("The statefulset {} shall be  scaled to {}", "cons"+(int)d, scaleByCapacity.get(d) );
-                if(Duration.between(warmup, Instant.now()).toSeconds() > 30 ) {
-                    log.info("cons"+(int)d);
+                log.info("The statefulset {} shall be  scaled to {}", "cons" + (int) d, scaleByCapacity.get(d));
+                log.info("cons" + (int) d);
 
-                    /* new Thread(()-> {*/ try (final KubernetesClient k8s = new DefaultKubernetesClient()) {
-                        k8s.apps().statefulSets().inNamespace("default").withName("cons"+(int)d).scale(scaleByCapacity.get(d));
-                    }}/*).start();*/
+                new Thread(() -> {
+                    try (final KubernetesClient k8s = new KubernetesClientBuilder().build()) {
+                        k8s.apps().statefulSets().inNamespace("default").withName("cons" + (int) d).scale(scaleByCapacity.get(d));
+                    }
+                }).start();
                 lastScaletime = Instant.now();
+
             }
         }
 

@@ -67,8 +67,6 @@ public class AssignmentServer implements Runnable {
         @Override
         public void getAssignment(AssignmentRequest request, StreamObserver<AssignmentResponse> responseObserver) {
             log.info(request.getRequest());
-
-
             if (Duration.between(PrometheusHttpClient.warmup, Instant.now()).toSeconds() < 60 ){
             List<Consumer> assignment = new ArrayList<>();
                 Consumer c0 = new Consumer(90.0);
@@ -119,9 +117,7 @@ public class AssignmentServer implements Runnable {
                 log.info("Sent Assignment to client");
 
             }
-            //PrometheusHttpClient.joiningTime = Duration.between(PrometheusHttpClient.lastScaleTime, Instant.now()).getSeconds();
-            //log.info("joiningTime {}", PrometheusHttpClient.joiningTime);*/
-            // }
+
         }
 
     }
