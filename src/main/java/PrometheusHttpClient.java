@@ -200,14 +200,4 @@ public class PrometheusHttpClient implements Runnable {
 
 
 
-
-
-
-
-
-
-
-
-
-
 }
