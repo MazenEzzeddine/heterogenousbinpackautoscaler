@@ -111,7 +111,6 @@ public class PrometheusHttpClient implements Runnable {
 
     public static void  youMightWanttoScaleTrial2(){
         log.info("Inside binPackAndScale ");
-        List<Consumer> consumers = new ArrayList<>();
 
         Map<Double, List<Consumer>> currentConsumersByName = new HashMap<>();
 
