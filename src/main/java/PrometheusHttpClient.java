@@ -37,7 +37,6 @@ public class PrometheusHttpClient implements Runnable {
     static int size;
     static ArrayList<Partition> topicpartitions = new ArrayList<>();
 
-    static double wsla = 5.0;
 
     static Map<Double, Integer> previousConsumers = new HashMap<>();
     static Map<Double, Integer> currentConsumers =  new HashMap<>();

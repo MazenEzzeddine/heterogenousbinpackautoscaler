@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class Consumer  implements  Comparable{
+public class Consumer  implements  Comparable<Consumer>{
 
     public void setId(String id) {
         this.id = id;
@@ -65,12 +65,10 @@ public class Consumer  implements  Comparable{
                 '}';
     }
 
+
+
     @Override
-    public int compareTo(Object o) {
-        return Double.compare(remainingCapacity , ((Consumer)o).remainingCapacity);
+    public int compareTo(Consumer o) {
+        return Double.compare(remainingCapacity , o.remainingCapacity);
     }
-
-
-
-
 }
